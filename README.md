@@ -4,7 +4,7 @@ This repository contains a [Terraform](https://www.terraform.io/) module to crea
 
 ## How to use this module?
 Have a look in the `examples` folder for some applications of this module. There are multiple examples available:
-- `simple-cluster`: Creates a simple single-master cluster. This shows the minimal configuration.
+- `basic-cluster`: Creates a simple single-master cluster. This shows the minimal configuration.
 - `cloudflare-ha-cluster`: A cluster with a highly available control plane.
 
 ## Module Structure
