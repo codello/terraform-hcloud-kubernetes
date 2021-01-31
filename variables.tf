@@ -40,7 +40,7 @@ variable "remove_default_hcloud_labels" {
 # ---------------------------------------------------------------------------------------------------------------------
 variable "api_endpoints" {
   type        = list(string)
-  default     = null
+  default     = []
   description = "The endpoints of the cluster control plane (DNS names or IP address, optionally with port). Required for HA configurations."
 
   validation {
@@ -183,7 +183,6 @@ variable "kube_proxy_configuration" {
   default     = <<-EOF
     apiVersion: kubeadm.config.k8s.io/v1alpha1
     kind: KubeProxyConfiguration
-  })
   EOF
   description = "The cluster-wide KubeProxyConfiguration."
 
@@ -236,4 +235,5 @@ variable "hcloud_token" {
   type        = string
   default     = null
   description = "The token used by the Hetzner CCM and CSI driver."
+  sensitive   = true
 }

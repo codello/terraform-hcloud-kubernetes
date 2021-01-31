@@ -25,7 +25,7 @@ variable "cluster_version" {
 
 variable "api_endpoints" {
   type        = list(string)
-  default     = null
+  default     = []
   description = "The endpoints of the cluster control plane (DNS names or IP address, optionally with port). Required for HA configurations. The first endpoint will be used as the primary endpoint."
 
   validation {
@@ -161,7 +161,6 @@ variable "kube_proxy_configuration" {
   default     = <<-EOF
     apiVersion: kubeadm.config.k8s.io/v1alpha1
     kind: KubeProxyConfiguration
-  })
   EOF
   description = "The cluster-wide KubeProxyConfiguration."
 

@@ -128,7 +128,9 @@ module "cluster" {
 
   name            = var.name
   cluster_version = var.cluster_version
-  api_endpoints   = var.api_endpoints
+  api_endpoints   = length(var.api_endpoints) > 0 ? var.api_endpoints : (
+                      local.ha_mode ? [module.api_lb[0].public_ipv4, module.api_lb[0].public_ipv6] : []
+                    )
 
   networking      = local.networking
   port            = var.port

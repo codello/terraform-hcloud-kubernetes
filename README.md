@@ -14,7 +14,7 @@ the core of this module and also offers the greatest flexibility. You may want t
 `modules/` folder as well if convenient. Some typical applications for using the `kube-cluster` module directly might
 be:
 - Integrating a Kubernetes cluster into a complex network.
-- Using existing PKI infrastructure
+- Using existing PKI infrastructure (avoiding secrets in the state file)
 - Customizing preinstalled cluster addons
 
 ## Cluster Endpoints
@@ -37,6 +37,9 @@ chosing endpoints:
 - Alternatively you might use the IP of a load balancer (this is not recommended as the cluster becomes inaccessible
   if the load balancer is removed).
 - You could also use a floating IP address
+
+If no endpoint is specified the public API of the load balancer is used or if no load balancer exist the public IP of
+the leader.
 
 ## More Documentation
 In order to get a better understanding of the benefits and caveats of this module you should read the

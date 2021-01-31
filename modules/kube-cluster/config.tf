@@ -7,6 +7,7 @@ locals {
 
       clusterName          = var.name
       kubernetesVersion    = var.cluster_version
+      controlPlaneEndpoint = local.api_endpoints[0]
       networking           = merge(
         {
           podSubnet     = local.networking.pod_cidr
@@ -17,22 +18,19 @@ locals {
 
       certificatesDir = local.cert_dir
       apiServer       = merge(
+        length(local.api_endpoints) > 1 ? {
+          certSANs = slice(local.api_endpoints, 1, length(local.api_endpoints))
+        } : {},
         local.kubelet_ca_enabled ? {
           extraArgs = {
             kubelet-certificate-authority = "${local.cert_dir}/kubelet-ca.crt"
           }
-        } : {},
-        length(var.api_endpoints) > 1 ? {
-          certSANs = slice(var.api_endpoints, 1, length(var.api_endpoints))
         } : {}
       )
       
       controllerManager = yamldecode(var.controller_manager)
       scheduler         = yamldecode(var.scheduler)
-    },
-    length(var.api_endpoints) > 0 ? {
-      controlPlaneEndpoint = var.api_endpoints[0]
-    } : {}
+    }
   )
   
   # The KubeletConfiguration will be uploaded into the cluster and applied by each kubelet when it joins.

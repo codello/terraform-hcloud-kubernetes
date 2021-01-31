@@ -1,4 +1,5 @@
 locals {
+  api_endpoints = coalescelist(var.api_endpoints, [hcloud_server.servers[local.leader].ipv4_address, hcloud_server.servers[local.leader].ipv6_address])
   kubelet_ca_enabled = var.kubelet_ca != null
   network_enabled = var.private_network != null
   kubeconfig_path     = "/tmp/kubeconfig.yml"

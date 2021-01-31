@@ -8,6 +8,11 @@ output "node_info" {
   value       = module.cluster.node_info
 }
 
+output "leader" {
+  description = "The name of the leader node."
+  value       = module.cluster.leader
+}
+
 output "ipv4_address" {
   description = "The IP address of the API server or its load balancer."
   value       = local.ha_mode ? module.api_lb[0].public_ipv4 : module.cluster.node_info[module.cluster.leader].public_ipv4
