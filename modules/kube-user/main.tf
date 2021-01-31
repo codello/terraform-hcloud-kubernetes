@@ -1,5 +1,5 @@
 locals {
-  private_key_pem = coalesce(var.private_key_pem, tls_private_key.key.private_key_pem)
+  private_key_pem = coalesce(var.private_key_pem, tls_private_key.key[0].private_key_pem)
   context_name    = var.context_name != null ? var.context_name : "${var.username}@${var.cluster_name}"
   # See: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
   kubeconfig      = {
@@ -19,7 +19,7 @@ locals {
       name = var.username
       user = {
         client-certificate-data = base64encode(tls_locally_signed_cert.cert.cert_pem)
-        client-key-data         = base64encode(tls_private_key.key.private_key_pem)
+        client-key-data         = base64encode(local.private_key_pem)
       }
     }]
     contexts = [{

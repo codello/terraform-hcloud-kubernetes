@@ -14,6 +14,6 @@ output "public_ipv6" {
 }
 
 output "private_ipv4" {
-  value       = try(hcloud_load_balancer_network.network.ip, null)
+  value       = try(hcloud_load_balancer_network.network[0].ip, null)
   description = "The private IPv4 address of the API load balancer. Only available if networks are enabled."
 }

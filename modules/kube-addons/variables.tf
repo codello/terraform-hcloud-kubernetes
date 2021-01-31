@@ -11,7 +11,8 @@ variable "cluster_id" {
 variable "kubeconfig" {
   type        = string
   description = "A rendered kubeconfig file used to install the addons into the cluster."
-  sensitive   = true
+  # TODO: Mark this as sensitive. Currently this causes an error.
+  # sensitive   = true
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -28,8 +29,9 @@ variable "cloud_controller_manager" {
     network  = optional(number) # ID of the Cloud Network
   })
   default     = {
-    enabled = false
-    token   = ""
+    enabled  = false
+    token    = ""
+    pod_cidr = ""
   }
   description = "Settings for the cloud controller manager."
   sensitive   = true
@@ -42,7 +44,7 @@ variable "csi_driver" {
     enabled = bool   # Install the CSI driver.
     token   = string # Cloud Token the CSI driver will use to authenticate.
 
-    default_storage_class = optiona(bool)    # Whether to make this the default storage class.
+    default_storage_class = optional(bool)    # Whether to make this the default storage class.
     storage_class_name    = optional(string) # The name of the storage class in the cluster.
   })
   default     = {
@@ -66,6 +68,7 @@ variable "ssh_keys" {
     private_key = ""
   }
   description = "Settings for in-cluster SSH-Keys."
+  sensitive   = true
 }
 
 # The Calico CNI plugin.

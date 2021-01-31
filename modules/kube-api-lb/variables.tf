@@ -18,12 +18,6 @@ variable "location" {
   description = "The location of the load balancer. One of location and datacenter is required."
 }
 
-variable "datacenter" {
-  type        = string
-  default     = null
-  description = "The datacenter of the load balancer. One of location and datacenter is required."
-}
-
 variable "hcloud_labels" {
   type        = map(string)
   default     = {}
@@ -34,16 +28,21 @@ variable "hcloud_labels" {
 # NETWORKING
 # These variables configure how the load balancer integrates into your network.
 # ---------------------------------------------------------------------------------------------------------------------
-variable "subnet_id" {
-  type        = number
-  default     = null
-  description = "The subnet the load balancer is attached to."
+variable "mode" {
+  type        = string
+  default     = "bridge"
+  description = "How the load balancer fits in networks. 'public' only uses public interfaces. 'private' only uses private interfaces and disables the public interface. 'bridge' accepts public traffic but balances it via private IPs."
+
+  validation {
+    condition     = contains(["public", "private", "bridge"], var.mode)
+    error_message = "The mode must be public, private or bridge."
+  }
 }
 
-variable "enable_public_interface" {
-  type        = bool
-  default     = true
-  description = "Enable or disable the public interface of the load balancer."
+variable "subnet_id" {
+  type        = string
+  default     = null
+  description = "The subnet the load balancer is attached to."
 }
 
 variable "port" {

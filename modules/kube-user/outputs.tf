@@ -4,7 +4,7 @@ output "client_certificate" {
 }
 
 output "client_key" {
-  value       = tls_private_key.key.private_key_pem
+  value       = local.private_key_pem
   sensitive   = true
   description = "The private key generated for the user."
 }
@@ -18,10 +18,10 @@ output "kubeconfig" {
     cluster_ca_certificate = var.kubernetes_ca.cert
     username               = var.username
     client_certificate     = tls_locally_signed_cert.cert.cert_pem
-    client_key             = tls_private_key.key.private_key_pem
+    client_key             = local.private_key_pem
 
     # The rendered kubeconfig can be used by kubectl.
-    rendered = yamlencode(local.config)
+    rendered = yamlencode(local.kubeconfig)
   }
 }
 

@@ -7,7 +7,6 @@ resource "hcloud_load_balancer" "this" {
   name               = var.name
   load_balancer_type = var.type
   location           = var.location
-  datacenter         = var.datacenter
 
   labels = var.hcloud_labels
 }
@@ -33,11 +32,11 @@ resource "hcloud_load_balancer_service" "api" {
 }
 
 resource "hcloud_load_balancer_network" "network" {
-  count = var.subnet_id != null ? 1 : 0
+  count = var.mode != "public" ? 1 : 0
 
   load_balancer_id        = hcloud_load_balancer.this.id
   subnet_id               = var.subnet_id
-  enable_public_interface = var.enable_public_interface
+  enable_public_interface = var.mode == "bridge"
 }
 
 resource "hcloud_load_balancer_target" "control_plane" {
@@ -46,6 +45,6 @@ resource "hcloud_load_balancer_target" "control_plane" {
 
   type             = "label_selector"
   label_selector   = var.control_plane_selector
-  load_balancer_id = hcloud_load_balancer.api[0].id
+  load_balancer_id = hcloud_load_balancer.this.id
   use_private_ip   = var.subnet_id != null
 }

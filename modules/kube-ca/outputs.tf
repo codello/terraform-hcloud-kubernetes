@@ -1,3 +1,8 @@
+output "algorithm" {
+  value       = tls_self_signed_cert.this.key_algorithm
+  description = "The algorithm of the certificate."
+}
+
 output "cert" {
   value       = tls_self_signed_cert.this.cert_pem
   description = "The generated public certificate."

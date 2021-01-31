@@ -1,6 +1,6 @@
 locals {
   kubectl  = "${path.module}/kubectl.sh"
-  ccm      = defaults(var.cloud_controller_manager)
+  ccm      = var.cloud_controller_manager
   csi      = defaults(var.csi_driver, {
     default_storage_class = true
     storage_class_name    = "hcloud-volumes"
