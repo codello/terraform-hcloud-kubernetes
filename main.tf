@@ -84,37 +84,21 @@ resource "hcloud_ssh_key" "ssh_key" {
   public_key = tls_private_key.ssh_key.public_key_openssh
 }
 
-module "ca" {
-  source   = "./modules/kube-ca"
-  for_each = {
-    kubernetes = "kubernetes"
-    etcd = "etcd-ca"
-    front_proxy = "front-proxy-ca"
-    kubelet = "kubelet-ca"
+module "pki" {
+  source = "./modules/kube-pki"
+
+  algorithm = "ECDSA"
+  rsa_bits  = 4096 # For the SA keypair
+
+  kubelets = {
+    for name,config in var.nodes : name => {
+      ips = [
+        module.cluster.node_info[name].cluster_ip,
+        module.cluster.node_info[name].public_ipv4,
+        module.cluster.node_info[name].public_ipv6
+      ]
+    }
   }
-
-  algorithm   = "ECDSA"
-  common_name = each.value
-}
-
-resource "tls_private_key" "sa_keypair" {
-  # ECDSA private keys seem to make problems.
-  algorithm   = "RSA"
-  rsa_bits    = 4096
-}
-
-module "kubelet_certs" {
-  source   = "./modules/kubelet-cert"
-  for_each = var.nodes
-
-  kubelet_ca = module.ca["kubelet"]
-  algorithm  = "ECDSA"
-  names      = [each.key]
-  ips        = [
-    module.cluster.node_info[each.key].cluster_ip,
-    module.cluster.node_info[each.key].public_ipv4,
-    module.cluster.node_info[each.key].public_ipv6
-  ]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -150,15 +134,10 @@ module "cluster" {
     private_key = tls_private_key.ssh_key.private_key_pem
   }
 
-  kubeconfig    = module.kubeadm_user.kubeconfig.rendered
-  kubelet_ca    = module.ca["kubelet"]
-  kubelet_certs = module.kubelet_certs
-  sa_keypair    = tls_private_key.sa_keypair
-  certificates  = {
-    kubernetes_ca  = module.ca["kubernetes"]
-    etcd_ca        = module.ca["etcd"]
-    front_proxy_ca = module.ca["front_proxy"]
-  }
+  kubeconfig       = module.kubeadm_user.kubeconfig.rendered
+  kubelet_certs    = module.pki.kubelet_certs
+  sa_keypair       = module.pki.sa_keypair
+  ca_certificates  = module.pki.ca_certificates
 
   bootstrap_dependencies   = var.bootstrap_dependencies
   kube_proxy_configuration = var.kube_proxy_configuration
@@ -173,7 +152,7 @@ module "kubeadm_user" {
   
   cluster_name     = var.name
   cluster_endpoint = "https://${local.endpoint}"
-  kubernetes_ca    = module.ca["kubernetes"]
+  kubernetes_ca    = module.pki.ca_certificates["kubernetes"]
 
   username              = "kubeadm"
   groups                = "system:bootstrappers:kubeadm:default-node-token"
@@ -187,7 +166,7 @@ module "admin_user" {
   
   cluster_name     = var.name
   cluster_endpoint = "https://${local.endpoint}"
-  kubernetes_ca    = module.ca["kubernetes"]
+  kubernetes_ca    = module.pki.ca_certificates["kubernetes"]
   
   username = "kubernetes-admin"
   groups   = "system:masters"

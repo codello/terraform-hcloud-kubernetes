@@ -1,6 +1,6 @@
 locals {
   api_endpoints = coalescelist(var.api_endpoints, [hcloud_server.servers[local.leader].ipv4_address, hcloud_server.servers[local.leader].ipv6_address])
-  kubelet_ca_enabled = var.kubelet_ca != null
+  kubelet_ca_enabled = var.ca_certificates.kubelet != null
   network_enabled = var.private_network != null
   kubeconfig_path     = "/tmp/kubeconfig.yml"
   kubeadm_config_path = "/tmp/kubeadm.yml"
@@ -20,10 +20,10 @@ resource "null_resource" "cluster" {
   # dependencies.
   triggers = {
     name           = var.name
-    kubernetes_ca  = sha1(var.certificates.kubernetes_ca.cert)
-    etcd_ca        = sha1(var.certificates.etcd_ca.cert)
-    front_proxy_ca = sha1(var.certificates.front_proxy_ca.cert)
-    kubelet_ca     = sha1(var.kubelet_ca.cert)
+    kubernetes_ca  = sha1(var.ca_certificates.kubernetes.cert)
+    etcd_ca        = sha1(var.ca_certificates.etcd.cert)
+    front_proxy_ca = sha1(var.ca_certificates.front_proxy.cert)
+    kubelet_ca     = sha1(var.ca_certificates.kubelet.cert)
     sa_keypair     = sha1(var.sa_keypair.public_key_pem)
 
     pod_cidr     = local.networking.pod_cidr

@@ -66,7 +66,7 @@ resource "null_resource" "kubelet_certificate" {
   triggers = {
     cluster     = null_resource.cluster.id
     server_id   = hcloud_server.servers[each.key].id
-    ca_cert     = sha1(var.kubelet_ca.cert)
+    ca_cert     = sha1(var.ca_certificates["kubelet"].cert)
     certificate = sha1(var.kubelet_certs[each.key].cert)
     private_key = sha1(var.kubelet_certs[each.key].key)
   }
@@ -80,7 +80,7 @@ resource "null_resource" "kubelet_certificate" {
   provisioner "file" {
     content     = join("\n", [
       var.kubelet_certs[each.key].cert,
-      var.kubelet_ca.cert
+      var.ca_certificates["kubelet"].cert
     ])
     destination = "/tmp/kubelet.crt"
   }
@@ -117,10 +117,10 @@ resource "null_resource" "certificates" {
     server_id = hcloud_server.servers[each.key].id
     role      = each.value.role
     
-    kubernetes_ca  = sha1(var.certificates.kubernetes_ca.cert)
-    etcd_ca        = sha1(var.certificates.etcd_ca.cert)
-    front_proxy_ca = sha1(var.certificates.front_proxy_ca.cert)
-    kubelet_ca     = sha1(var.kubelet_ca.cert)
+    kubernetes_ca  = sha1(var.ca_certificates.kubernetes.cert)
+    etcd_ca        = sha1(var.ca_certificates.etcd.cert)
+    front_proxy_ca = sha1(var.ca_certificates.front_proxy.cert)
+    kubelet_ca     = sha1(var.ca_certificates.kubelet.cert)
     sa_keypair     = sha1(var.sa_keypair.public_key_pem)
   }
   
@@ -135,37 +135,37 @@ resource "null_resource" "certificates" {
   }
   
   provisioner "file" {
-    content     = var.certificates.kubernetes_ca.cert
+    content     = var.ca_certificates.kubernetes.cert
     destination = "/tmp/pki/ca.crt"
   }
   
   provisioner "file" {
-    content     = var.certificates.kubernetes_ca.key
+    content     = var.ca_certificates.kubernetes.key
     destination = "/tmp/pki/ca.key"
   }
   
   provisioner "file" {
-    content     = var.certificates.etcd_ca.cert
+    content     = var.ca_certificates.etcd.cert
     destination = "/tmp/pki/etcd/ca.crt"
   }
   
   provisioner "file" {
-    content     = var.certificates.etcd_ca.key
+    content     = var.ca_certificates.etcd.key
     destination = "/tmp/pki/etcd/ca.key"
   }
   
   provisioner "file" {
-    content     = var.certificates.front_proxy_ca.cert
+    content     = var.ca_certificates.front_proxy.cert
     destination = "/tmp/pki/front-proxy-ca.crt"
   }
   
   provisioner "file" {
-    content     = var.certificates.front_proxy_ca.key
+    content     = var.ca_certificates.front_proxy.key
     destination = "/tmp/pki/front-proxy-ca.key"
   }
   
   provisioner "file" {
-    content     = var.kubelet_ca.cert
+    content     = var.ca_certificates.kubelet.cert
     destination = "/tmp/pki/kubelet-ca.crt"
   }
   

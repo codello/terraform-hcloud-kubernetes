@@ -19,13 +19,23 @@ variable "ecdsa_curve" {
   description = "When using the ECDSA algorithm this is the elliptic curve to use."
 }
 
-variable "common_name" {
-  type        = string
-  description = "The CN of the generated certificate."
+variable "ca_validity_period_hours" {
+  type        = number
+  default     = 86400  # 10 years
+  description = "The number of hours the CA certificates are valid for."
 }
 
-variable "validity_period_hours" {
+variable "kubelet_validity_period_hours" {
   type        = number
-  default     = 86400
-  description = "The number of hours the certificate is valid for."
+  default     = 8640  # 1 year
+  description = "The number of hours the kubelet certificates are valid for."
+}
+
+variable "kubelets" {
+  type        = map(object({
+    names = optional(list(string))
+    ips   = optional(list(string))
+  }))
+  default     = {}
+  description = "A list of kubelet names and IPs for which to generate kubelet certs. If at least one kubelet is present a kubelet CA will also be created."
 }

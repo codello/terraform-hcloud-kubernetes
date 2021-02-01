@@ -6,7 +6,7 @@ output "id" {
 # This value is just copied from the input. It is included here for convenience.
 output "ca_certificate" {
 	description = "The certificate of the cluster CA."
-	value				= var.certificates.kubernetes_ca.cert
+	value				= var.ca_certificates.kubernetes.cert
 }
 
 output "node_info" {

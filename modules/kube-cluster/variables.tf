@@ -215,39 +215,34 @@ variable "kubeconfig" {
   # sensitive   = true
 }
 
-# See https://kubernetes.io/docs/concepts/architecture/control-plane-node-communication/#apiserver-to-kubelet
-variable "kubelet_ca" {
-  type        = object({
-    cert = string
-  })
-  default     = null
-  description = "A certificate for the kubelet certificate authority. If enabled it is expected that all kubelets use certificates issued by this CA."
-}
-
 variable "kubelet_certs" {
   type        = map(object({
     cert = string # The certificate
     key  = string # The private key
   }))
   default     = {}
-  description = "The kubelet certificates for the kubelets. Required if kubelet_ca is set."
+  description = "The kubelet certificates for the kubelets. Required if a kubelet CA is set."
   # sensitive   = true
 }
 
-variable "certificates" {
+variable "ca_certificates" {
   type        = object({
-    kubernetes_ca = object({
+    kubernetes = object({
       cert      = string # The certificatet of the kubernetes CA.
       key       = string # The private key of the kubernetes CA.
     })
-    etcd_ca = object({
+    etcd = object({
       cert      = string # The certificate of the etcd CA.
       key       = string # The private key of the etcd CA.
     })
-    front_proxy_ca = object({
+    front_proxy = object({
       cert      = string # The certificate of the front proxy CA.
       key       = string # The private key of the fron proxy CA.
     })
+    # See https://kubernetes.io/docs/concepts/architecture/control-plane-node-communication/#apiserver-to-kubelet
+    kubelet = optional(object({
+      cert      = string # The certificate of the kubelet CA.
+    }))
   })
   description = "The certificate authorities used by the cluster."
   # sensitive   = true
@@ -258,6 +253,6 @@ variable "sa_keypair" {
     public_key_pem  = string
     private_key_pem = string
   })
-  description = "The keypair used to create service account credentials."
+  description = "The keypair used to create service account credentials. Must be an RSA key."
   # sensitive   = true
 }
