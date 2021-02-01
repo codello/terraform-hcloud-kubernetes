@@ -188,14 +188,14 @@ module "addons" {
 
   cloud_controller_manager = {
     enabled  = var.hcloud_token != null
-    token    = var.hcloud_token
+    token    = coalesce(var.hcloud_token, "-")
     pod_cidr = local.networking.pod_cidr
     network  = hcloud_network.network.id
   }
 
   csi_driver = {
     enabled = var.hcloud_token != null
-    token   = var.hcloud_token
+    token   = coalesce(var.hcloud_token, "-")
   }
 
   ssh_keys = {

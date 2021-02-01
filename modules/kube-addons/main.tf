@@ -1,48 +1,28 @@
 locals {
   kubectl = "${path.module}/kubectl.sh"
-  ccm     = var.cloud_controller_manager
-  csi = defaults(var.csi_driver, {
+
+  ccm_manifest = templatefile("${path.module}/manifests/hcloud-ccm.yaml", var.cloud_controller_manager)
+  csi_manifest = templatefile("${path.module}/manifests/hcloud-csi-driver.yaml", defaults(var.csi_driver, {
     default_storage_class = true
     storage_class_name    = "hcloud-volumes"
+  }))
+  ssh_keys_manifest = templatefile("${path.module}/manifests/ssh-keys.yaml", {
+    public_key  = base64encode(var.ssh_keys.public_key)
+    private_key = base64encode(var.ssh_keys.private_key)
   })
-  ssh_keys = var.ssh_keys
-  calico = defaults(var.calico, {
-    enabled       = false
+  calico_manifest = templatefile("${path.module}/manifests/calico.yaml", defaults(var.calico, {
     ipam          = "host-local"
     overlay       = "none"
     force_overlay = false
-  })
-  flannel = var.flannel
-
-  ccm_manifest = templatefile("${path.module}/manifests/hcloud-ccm.yaml", {
-    token    = local.ccm.token
-    network  = local.ccm.network
-    pod_cidr = local.ccm.pod_cidr
-  })
-  csi_manifest = templatefile("${path.module}/manifests/hcloud-csi-driver.yaml", {
-    token                 = local.csi.token
-    default_storage_class = local.csi.default_storage_class
-    storage_class_name    = local.csi.storage_class_name
-  })
-  ssh_keys_manifest = templatefile("${path.module}/manifests/ssh-keys.yaml", {
-    public_key  = base64encode(local.ssh_keys.public_key)
-    private_key = base64encode(local.ssh_keys.private_key)
-  })
-  calico_manifest = templatefile("${path.module}/manifests/calico.yaml", {
-    ipam          = local.calico.ipam
-    overlay       = local.calico.overlay
-    force_overlay = local.calico.force_overlay
-  })
-  flannel_manifest = templatefile("${path.module}/manifests/flannel.yaml", {
-    pod_cidr = local.flannel.pod_cidr
-  })
+  }))
+  flannel_manifest = templatefile("${path.module}/manifests/flannel.yaml", var.flannel)
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
 # SSH KEYS
 # ---------------------------------------------------------------------------------------------------------------------
 resource "null_resource" "ssh_keys" {
-  count = local.ssh_keys.enabled ? 1 : 0
+  count = var.ssh_keys.enabled ? 1 : 0
   triggers = {
     cluster  = var.cluster_id
     manifest = sha1(local.ssh_keys_manifest)
@@ -61,7 +41,7 @@ resource "null_resource" "ssh_keys" {
 # CALICO
 # ---------------------------------------------------------------------------------------------------------------------
 resource "null_resource" "calico" {
-  count = local.calico.enabled ? 1 : 0
+  count = var.calico.enabled ? 1 : 0
 
   triggers = {
     cluster  = var.cluster_id
@@ -93,7 +73,7 @@ resource "null_resource" "calico" {
 # FLANNEL
 # ---------------------------------------------------------------------------------------------------------------------
 resource "null_resource" "flannel" {
-  count = local.flannel.enabled ? 1 : 0
+  count = var.flannel.enabled ? 1 : 0
 
   triggers = {
     cluster  = var.cluster_id
@@ -125,7 +105,7 @@ resource "null_resource" "flannel" {
 # CLOUD CONTROLLER MANAGER
 # ---------------------------------------------------------------------------------------------------------------------
 resource "null_resource" "ccm" {
-  count      = local.ccm.enabled ? 1 : 0
+  count      = var.cloud_controller_manager.enabled ? 1 : 0
   depends_on = [null_resource.calico, null_resource.flannel]
 
   triggers = {
@@ -148,7 +128,7 @@ resource "null_resource" "ccm" {
 # CSI DRIVER
 # ---------------------------------------------------------------------------------------------------------------------
 resource "null_resource" "csi" {
-  count      = local.csi.enabled ? 1 : 0
+  count      = var.csi_driver.enabled ? 1 : 0
   depends_on = [null_resource.calico, null_resource.flannel]
 
   triggers = {
