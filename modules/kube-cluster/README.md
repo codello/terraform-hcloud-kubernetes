@@ -45,6 +45,18 @@ module "cluster" {
 }
 ```
 
+## Node Requirements
+This module does **not** configure nodes to be able to run Kubernetes. It merely initializes the cluster using
+`kubeadm` but does not install `kubeadm`, `kubelet` or a container runtime. These have to be provided by the image you
+are using. By default this module uses a rudimentary `cloud-init` template that configures the default user and SSH
+access but does nothing special. So you have basically two ways to create nodes:
+- Provide a `user-data` document for each node that installs the required packages on first boot.
+- Create a custom image (e.g. using Packer) and provide its ID (or a selector to find the image) for the nodes. This is
+  the recommended approach.
+
+As a starting point you can use the packer template provided in this repository. It configures a CentOS 8 system with
+`kubeadm`, `kubelet` and the `cri-o` container runtime.
+
 ## Cluster Upgrades
 Cluster upgrades are supported, but not very well tested yet. To upgrade a cluster set the `cluster_version` to the new
 version. All restrictions to upgrades in Kubernetes apply, but are not validated. That means that you must make sure

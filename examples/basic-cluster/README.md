@@ -9,5 +9,6 @@ usecase).
 
 ## Using this module
 1. Create a `*.auto.tfvars` file with the required variable values (see `variables.tf`).
-2. Run `terraform init`
-3. Run `terraform apply`
+2. Create an appropriate base image for the nodes (see the `packer` folder in this repo).
+3. Run `terraform init`
+4. Run `terraform apply`

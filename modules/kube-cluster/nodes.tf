@@ -32,6 +32,7 @@ data "hcloud_image" "image" {
   name          = each.value.image_name != null ? each.value.image_name : var.node_defaults.image_name # coalesce(each.value.image_name, var.node_defaults.image_name)
   with_selector = data.template_file.image_selector[each.key].rendered
   with_status   = ["available"]
+  most_recent   = coalesce(each.value.most_recent_image, var.node_defaults.most_recent_image, false)
 }
 
 resource "hcloud_server" "servers" {

@@ -17,8 +17,9 @@ crash.log
 #
 # example.tfvars
 
-# Ignore local secrets in .tfvars files
+# Ignore local secrets in .tfvars and .pkvars.hcl files
 secrets.auto.tfvars
+secrets.auto.pkrvars.hcl
 
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in
