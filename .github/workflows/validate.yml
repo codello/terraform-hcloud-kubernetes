@@ -1,0 +1,62 @@
+name: Style Guidelines
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  format:
+    name: Check Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+      - name: Terraform Format
+        run: terraform fmt -check -recursive
+  
+  lint:
+    name: TFLint ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module:
+          - .
+          - modules/kube-addons
+          - modules/kube-api-lb
+          - modules/kube-cluster
+          - modules/kube-pki
+          - modules/kube-user
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: tflint
+        uses: reviewdog/action-tflint@master
+        with:
+          github_token: ${{ secrets.github_token }}
+          flags: "--module ${{ matrix.module }}"
+
+  validate:
+    name: Validate ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module:
+          - .
+          - examples/basic-cluster
+          - examples/cloudflare-ha-cluster
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+      - name: Terraform Init
+        run: terraform init -backend=false
+        working-directory: ${{ matrix.module }}
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ${{ matrix.module }}
+        env:
+          # This is a workaround for https://github.com/hashicorp/terraform/issues/21408
+          HCLOUD_TOKEN: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
