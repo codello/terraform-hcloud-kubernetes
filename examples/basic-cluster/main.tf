@@ -7,14 +7,14 @@ data "hcloud_image" "image" {
 
 module "cluster" {
   source = "../../"
-  
+
   name            = "kubernetes"
   cluster_version = "v1.19.6"
   location        = "nbg1"
   hcloud_token    = var.hcloud_k8s_token
 
   node_defaults = {
-      # FIXME: Temporary fix for hetznercloud/terraform-provider-hcloud#306
+    # FIXME: Temporary fix for hetznercloud/terraform-provider-hcloud#306
     image_id     = data.hcloud_image.image.id
     server_type  = "cpx11"
     kubelet_args = { cgroup-driver = "systemd" }

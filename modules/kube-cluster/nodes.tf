@@ -2,11 +2,11 @@
 # https://github.com/hashicorp/terraform/issues/27385
 locals {
   leader = var.leader != null ? var.leader : keys(local.control_plane_nodes)[0]
-  nodes  = {
-    for name,config in var.nodes : name => merge(var.node_defaults, config)
+  nodes = {
+    for name, config in var.nodes : name => merge(var.node_defaults, config)
   }
   control_plane_nodes = {
-    for name,config in local.nodes : name => config if config.role == "control-plane"
+    for name, config in local.nodes : name => config if config.role == "control-plane"
   }
 
   kubelet_cert_path = "/var/lib/kubelet/pki/kubelet.crt"
@@ -16,9 +16,9 @@ locals {
 
 data "template_file" "image_selector" {
   for_each = local.nodes
-  
+
   template = coalesce(each.value.image_selector, var.node_defaults.image_selector, "kubernetes")
-  vars     = {
+  vars = {
     cluster_name    = var.name
     cluster_version = var.cluster_version
     node_name       = each.key
@@ -28,7 +28,7 @@ data "template_file" "image_selector" {
 data "hcloud_image" "image" {
   for_each = local.nodes
 
-  id            = each.value.image_id != null ? each.value.image_id : var.node_defaults.image_id # coalesce(each.value.image_id, var.node_defaults.image_id)
+  id            = each.value.image_id != null ? each.value.image_id : var.node_defaults.image_id       # coalesce(each.value.image_id, var.node_defaults.image_id)
   name          = each.value.image_name != null ? each.value.image_name : var.node_defaults.image_name # coalesce(each.value.image_name, var.node_defaults.image_name)
   with_selector = data.template_file.image_selector[each.key].rendered
   with_status   = ["available"]
@@ -45,7 +45,7 @@ resource "hcloud_server" "servers" {
   ssh_keys    = [var.ssh_key.id]
   keep_disk   = coalesce(each.value.keep_disk, var.node_defaults.keep_disk, false)
   user_data   = coalesce(each.value.user_data, var.node_defaults.user_data, file("${path.module}/user-data.yaml"))
-  labels      = merge(
+  labels = merge(
     var.role_label != "" ? { (var.role_label) = each.value.role } : {},
     coalesce(each.value.label_strategy, var.node_defaults.label_strategy, "merge") == "merge" ? var.node_defaults.hcloud_labels : {},
     each.value.hcloud_labels
@@ -54,7 +54,7 @@ resource "hcloud_server" "servers" {
 
 resource "hcloud_server_network" "network" {
   for_each = local.network_enabled ? local.nodes : {}
-  
+
   server_id  = hcloud_server.servers[each.key].id
   network_id = var.private_network.network_id
   subnet_id  = var.private_network.subnet_id
@@ -63,7 +63,7 @@ resource "hcloud_server_network" "network" {
 
 resource "null_resource" "kubelet_certificate" {
   for_each = local.kubelet_ca_enabled ? local.nodes : {}
-  
+
   triggers = {
     cluster     = null_resource.cluster.id
     server_id   = hcloud_server.servers[each.key].id
@@ -71,26 +71,26 @@ resource "null_resource" "kubelet_certificate" {
     certificate = sha1(var.kubelet_certs[each.key].cert)
     private_key = sha1(var.kubelet_certs[each.key].key)
   }
-  
+
   connection {
     user        = coalesce(each.value.ssh_user, "kube")
     host        = hcloud_server.servers[each.key].ipv4_address
     private_key = var.ssh_key.private_key
   }
-  
+
   provisioner "file" {
-    content     = join("\n", [
+    content = join("\n", [
       var.kubelet_certs[each.key].cert,
       var.ca_certificates["kubelet"].cert
     ])
     destination = "/tmp/kubelet.crt"
   }
-  
+
   provisioner "file" {
     content     = var.kubelet_certs[each.key].key
     destination = "/tmp/kubelet.key"
   }
-  
+
   provisioner "remote-exec" {
     inline = [
       "sudo mkdir -p ${dirname(local.kubelet_cert_path)} ${dirname(local.kubelet_key_path)}",
@@ -111,75 +111,75 @@ resource "null_resource" "certificates" {
     # since the file provisioner does not log retries.
     null_resource.kubelet_certificate
   ]
-  for_each   = local.control_plane_nodes
-  
+  for_each = local.control_plane_nodes
+
   triggers = {
     cluster   = null_resource.cluster.id
     server_id = hcloud_server.servers[each.key].id
     role      = each.value.role
-    
+
     kubernetes_ca  = sha1(var.ca_certificates.kubernetes.cert)
     etcd_ca        = sha1(var.ca_certificates.etcd.cert)
     front_proxy_ca = sha1(var.ca_certificates.front_proxy.cert)
     kubelet_ca     = sha1(var.ca_certificates.kubelet.cert)
     sa_keypair     = sha1(var.sa_keypair.public_key_pem)
   }
-  
+
   connection {
     user        = coalesce(each.value.ssh_user, "kube")
     host        = hcloud_server.servers[each.key].ipv4_address
     private_key = var.ssh_key.private_key
   }
-  
+
   provisioner "remote-exec" {
     inline = ["mkdir -p /tmp/pki /tmp/pki/etcd"]
   }
-  
+
   provisioner "file" {
     content     = var.ca_certificates.kubernetes.cert
     destination = "/tmp/pki/ca.crt"
   }
-  
+
   provisioner "file" {
     content     = var.ca_certificates.kubernetes.key
     destination = "/tmp/pki/ca.key"
   }
-  
+
   provisioner "file" {
     content     = var.ca_certificates.etcd.cert
     destination = "/tmp/pki/etcd/ca.crt"
   }
-  
+
   provisioner "file" {
     content     = var.ca_certificates.etcd.key
     destination = "/tmp/pki/etcd/ca.key"
   }
-  
+
   provisioner "file" {
     content     = var.ca_certificates.front_proxy.cert
     destination = "/tmp/pki/front-proxy-ca.crt"
   }
-  
+
   provisioner "file" {
     content     = var.ca_certificates.front_proxy.key
     destination = "/tmp/pki/front-proxy-ca.key"
   }
-  
+
   provisioner "file" {
     content     = var.ca_certificates.kubelet.cert
     destination = "/tmp/pki/kubelet-ca.crt"
   }
-  
+
   provisioner "file" {
     content     = var.sa_keypair.public_key_pem
     destination = "/tmp/pki/sa.pub"
   }
-  
+
   provisioner "file" {
     content     = var.sa_keypair.private_key_pem
     destination = "/tmp/pki/sa.key"
   }
-  
+
   provisioner "remote-exec" {
     inline = [
       "sudo mkdir -p ${local.cert_dir}/",

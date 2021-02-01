@@ -8,7 +8,7 @@ locals {
       clusterName          = var.name
       kubernetesVersion    = var.cluster_version
       controlPlaneEndpoint = local.api_endpoints[0]
-      networking           = merge(
+      networking = merge(
         {
           podSubnet     = local.networking.pod_cidr
           serviceSubnet = local.networking.service_cidr
@@ -17,7 +17,7 @@ locals {
       )
 
       certificatesDir = local.cert_dir
-      apiServer       = merge(
+      apiServer = merge(
         length(local.api_endpoints) > 1 ? {
           certSANs = slice(local.api_endpoints, 1, length(local.api_endpoints))
         } : {},
@@ -27,12 +27,12 @@ locals {
           }
         } : {}
       )
-      
+
       controllerManager = yamldecode(var.controller_manager)
       scheduler         = yamldecode(var.scheduler)
     }
   )
-  
+
   # The KubeletConfiguration will be uploaded into the cluster and applied by each kubelet when it joins.
   # This configuration should only contain settings that apply to every kubelet in the cluster.
   kubelet_configuration = merge(
@@ -49,19 +49,19 @@ locals {
 
   # The InitConfiguration configures the bootstrapping node (local.leader).
   init_configuration = {
-    apiVersion = "kubeadm.k8s.io/v1beta2"
-    kind = "InitConfiguration"
+    apiVersion       = "kubeadm.k8s.io/v1beta2"
+    kind             = "InitConfiguration"
     nodeRegistration = local.node_registration[local.leader]
     localAPIEndpoint = local.local_api_endpoint[local.leader]
     bootstrapTokens  = []
   }
-  
+
   # The JoinConfiguration configures how each node joins the cluster.
-  join_configuration = {for node,config in local.nodes : node => merge(
+  join_configuration = { for node, config in local.nodes : node => merge(
     {
       apiVersion = "kubeadm.k8s.io/v1beta2"
       kind       = "JoinConfiguration"
-      discovery  = {
+      discovery = {
         file = { kubeConfigPath = local.kubeconfig_path }
       }
       nodeRegistration = local.node_registration[node]
@@ -71,21 +71,21 @@ locals {
         localAPIEndpoint = local.local_api_endpoint[node]
       }
     } : {}
-  )}
-  
+  ) }
+
   # The localAPIEndpoint is present for all control plane nodes.
   local_api_endpoint = {
-    for node,config in local.control_plane_nodes : node => merge({
+    for node, config in local.control_plane_nodes : node => merge({
       advertiseAddress = local.network_enabled ? hcloud_server_network.network[node].ip : hcloud_server.servers[node].ipv4_address
       bindPort         = var.port
     })
   }
-  
+
   # The nodeRegistration options configure how a node joins the cluster. This includes local kubelet configurations.
   node_registration = {
-    for node,config in local.nodes: node => merge(
+    for node, config in local.nodes : node => merge(
       {
-        name = node
+        name   = node
         taints = coalesce(config.taints, var.node_defaults.taints, [])
         kubeletExtraArgs = merge(
           {
@@ -93,7 +93,7 @@ locals {
             cloud-provider = "external"
           },
           length(coalesce(config.labels, var.node_defaults.labels, {})) > 0 ? {
-            node-labels    = join(",", [for key,value in coalesce(config.labels, var.node_defaults.labels, {}) : "${key}=${value}"])
+            node-labels = join(",", [for key, value in coalesce(config.labels, var.node_defaults.labels, {}) : "${key}=${value}"])
           } : {},
           coalesce(config.kubelet_args, var.node_defaults.kubelet_args, {})
         )

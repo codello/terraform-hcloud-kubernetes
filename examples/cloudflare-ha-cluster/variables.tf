@@ -14,6 +14,6 @@ variable "hcloud_k8s_token" {
 }
 
 variable "cluster_domain" {
-    type        = string
-    description = "The domain where the cluster will be available."
+  type        = string
+  description = "The domain where the cluster will be available."
 }

@@ -40,7 +40,7 @@ variable "api_endpoints" {
 # the cluster.
 # ---------------------------------------------------------------------------------------------------------------------
 variable "private_network" {
-  type        = object({
+  type = object({
     network_id = optional(number)
     subnet_id  = optional(string)
   })
@@ -49,7 +49,7 @@ variable "private_network" {
 }
 
 variable "networking" {
-  type        = object({
+  type = object({
     pod_cidr     = optional(string)
     service_cidr = optional(string)
     dns_domain   = optional(string)
@@ -62,7 +62,7 @@ variable "networking" {
 # NODES
 # ---------------------------------------------------------------------------------------------------------------------
 variable "ssh_key" {
-  type        = object({
+  type = object({
     id          = string # The ID of the SSH key in the Hetzner Cloud.
     private_key = string # The private key.
   })
@@ -89,31 +89,31 @@ variable "leader" {
 }
 
 variable "node_defaults" {
-  type        = object({
+  type = object({
     image_id          = optional(string) # The ID of the image for this node. Overrides image_name and image_selector.
     image_name        = optional(string) # The name of the image for this node. Overrides image_selector.
     image_selector    = optional(string) # A Hetzner label selector that choses the image for this node.
     most_recent_image = optional(bool)   # Whether or not to chose the most recent image if multiple images match the image_selector.
 
-    server_type       = optional(string)      # The type of server for the node.
-    location          = optional(string)      # The location for the node. Each node has to have a location.
-    hcloud_labels     = optional(map(string)) # Hetzner Cloud Labels to attach to the server.
-    label_strategy    = optional(string)      # "merge" or "replace". Merges node labels with defaults or replaces defaults.
-    keep_disk         = optional(string)      # Whether or not to keep the disk size on node upgrades.
-    user_data         = optional(string)      # Custom user-data. If not provided a default will be used that may or may not be suitable for your image.
-    ssh_user          = optional(string)      # The username used to connect to the server. Needs to be able to use passwordless sudo.
+    server_type    = optional(string)      # The type of server for the node.
+    location       = optional(string)      # The location for the node. Each node has to have a location.
+    hcloud_labels  = optional(map(string)) # Hetzner Cloud Labels to attach to the server.
+    label_strategy = optional(string)      # "merge" or "replace". Merges node labels with defaults or replaces defaults.
+    keep_disk      = optional(string)      # Whether or not to keep the disk size on node upgrades.
+    user_data      = optional(string)      # Custom user-data. If not provided a default will be used that may or may not be suitable for your image.
+    ssh_user       = optional(string)      # The username used to connect to the server. Needs to be able to use passwordless sudo.
 
-    cri_socket        = optional(string)       # The criSocket used by the node.
-    kubelet_args      = optional(map(string))  # Additional arguments for the kubelet.
-    ignore_errors     = optional(list(string)) # Preflight errors that should be ignored. Typically NumCPU for cx11 servers.
-    role              = optional(string)       # The role of the node. Only 'control-plane' is supported.
-    taints            = optional(list(object({ # Additional taints for the node. If specified for control plane nodes the respective taint is not applied automatically anymore.
+    cri_socket    = optional(string)       # The criSocket used by the node.
+    kubelet_args  = optional(map(string))  # Additional arguments for the kubelet.
+    ignore_errors = optional(list(string)) # Preflight errors that should be ignored. Typically NumCPU for cx11 servers.
+    role          = optional(string)       # The role of the node. Only 'control-plane' is supported.
+    taints = optional(list(object({        # Additional taints for the node. If specified for control plane nodes the respective taint is not applied automatically anymore.
       key    = string
       value  = string
       effect = string
     })))
-    labels            = optional(map(string))  # Additional labels for the node.
-    annotations       = optional(map(string)) # Additional annotations for the node.
+    labels      = optional(map(string)) # Additional labels for the node.
+    annotations = optional(map(string)) # Additional annotations for the node.
   })
   default     = {}
   description = "Default values for all nodes."
@@ -121,33 +121,33 @@ variable "node_defaults" {
 
 variable "nodes" {
   # The key is the name of the node. For a description of the possible values see node_defaults.
-  type        = map(object({
+  type = map(object({
     image_id          = optional(string)
     image_name        = optional(string)
     image_selector    = optional(string)
     most_recent_image = optional(bool)
 
-    server_type       = optional(string)
-    location          = optional(string)
-    ip                = optional(string)      # The private IP of the node.
-    hcloud_labels     = optional(map(string))
-    label_strategy    = optional(string)
-    keep_disk         = optional(string)
-    user_data         = optional(string)
-    ssh_user          = optional(string)
+    server_type    = optional(string)
+    location       = optional(string)
+    ip             = optional(string) # The private IP of the node.
+    hcloud_labels  = optional(map(string))
+    label_strategy = optional(string)
+    keep_disk      = optional(string)
+    user_data      = optional(string)
+    ssh_user       = optional(string)
 
-    cri_socket        = optional(string)
-    kubelet_args      = optional(map(string))
-    ignore_errors     = optional(list(string))
-    role              = optional(string)
-    taints            = optional(list(object({
+    cri_socket    = optional(string)
+    kubelet_args  = optional(map(string))
+    ignore_errors = optional(list(string))
+    role          = optional(string)
+    taints = optional(list(object({
       key    = string
       value  = string
       effect = string
     })))
-    labels            = optional(map(string))
+    labels = optional(map(string))
     # TODO: Implement annotations
-    annotations       = optional(map(string))
+    annotations = optional(map(string))
   }))
   description = "The nodes for the cluster."
 }
@@ -216,7 +216,7 @@ variable "kubeconfig" {
 }
 
 variable "kubelet_certs" {
-  type        = map(object({
+  type = map(object({
     cert = string # The certificate
     key  = string # The private key
   }))
@@ -226,22 +226,22 @@ variable "kubelet_certs" {
 }
 
 variable "ca_certificates" {
-  type        = object({
+  type = object({
     kubernetes = object({
-      cert      = string # The certificatet of the kubernetes CA.
-      key       = string # The private key of the kubernetes CA.
+      cert = string # The certificatet of the kubernetes CA.
+      key  = string # The private key of the kubernetes CA.
     })
     etcd = object({
-      cert      = string # The certificate of the etcd CA.
-      key       = string # The private key of the etcd CA.
+      cert = string # The certificate of the etcd CA.
+      key  = string # The private key of the etcd CA.
     })
     front_proxy = object({
-      cert      = string # The certificate of the front proxy CA.
-      key       = string # The private key of the fron proxy CA.
+      cert = string # The certificate of the front proxy CA.
+      key  = string # The private key of the fron proxy CA.
     })
     # See https://kubernetes.io/docs/concepts/architecture/control-plane-node-communication/#apiserver-to-kubelet
     kubelet = optional(object({
-      cert      = string # The certificate of the kubelet CA.
+      cert = string # The certificate of the kubelet CA.
     }))
   })
   description = "The certificate authorities used by the cluster."
@@ -249,7 +249,7 @@ variable "ca_certificates" {
 }
 
 variable "sa_keypair" {
-  type        = object({
+  type = object({
     public_key_pem  = string
     private_key_pem = string
   })

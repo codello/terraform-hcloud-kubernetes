@@ -71,7 +71,7 @@ variable "port" {
 # NETWORKING
 # ---------------------------------------------------------------------------------------------------------------------
 variable "networking" {
-  type        = object({
+  type = object({
     node_cidr    = optional(string)
     pod_cidr     = optional(string)
     service_cidr = optional(string)
@@ -102,29 +102,29 @@ variable "leader" {
 }
 
 variable "node_defaults" {
-  type        = object({
+  type = object({
     image_id          = optional(string) # The ID of the image for this node. Overrides image_name and image_selector.
     image_name        = optional(string) # The name of the image for this node. Overrides image_selector.
     image_selector    = optional(string) # A Hetzner label selector that choses the image for this node.
     most_recent_image = optional(bool)   # Whether or not to chose the most recent image if multiple images match the image_selector.
 
-    server_type       = optional(string)      # The type of server for the node.
-    hcloud_labels     = optional(map(string)) # Hetzner Cloud Labels to attach to the server.
-    role_label        = optional(string)      # The name of the label under which to attach the node role (empty string removes label).
-    keep_disk         = optional(string)      # Whether or not to keep the disk size on node upgrades.
-    user_data         = optional(string)      # Custom user-data. If not provided a default will be used that may or may not be suitable for your image.
-    ssh_user          = optional(string)      # The username used to connect to the server. Needs to be able to use passwordless sudo.
+    server_type   = optional(string)      # The type of server for the node.
+    hcloud_labels = optional(map(string)) # Hetzner Cloud Labels to attach to the server.
+    role_label    = optional(string)      # The name of the label under which to attach the node role (empty string removes label).
+    keep_disk     = optional(string)      # Whether or not to keep the disk size on node upgrades.
+    user_data     = optional(string)      # Custom user-data. If not provided a default will be used that may or may not be suitable for your image.
+    ssh_user      = optional(string)      # The username used to connect to the server. Needs to be able to use passwordless sudo.
 
-    kubelet_args      = optional(map(string))  # Additional arguments for the kubelet.
-    ignore_errors     = optional(list(string)) # Preflight errors that should be ignored. Typically NumCPU for cx11 servers.
-    role              = optional(string)       # The role of the node. Only 'control-plane' is supported.
-    taints            = optional(list(object({ # Additional taints for the node. If specified for control plane nodes the respective taint is not applied automatically anymore.
+    kubelet_args  = optional(map(string))  # Additional arguments for the kubelet.
+    ignore_errors = optional(list(string)) # Preflight errors that should be ignored. Typically NumCPU for cx11 servers.
+    role          = optional(string)       # The role of the node. Only 'control-plane' is supported.
+    taints = optional(list(object({        # Additional taints for the node. If specified for control plane nodes the respective taint is not applied automatically anymore.
       key    = string
       value  = string
       effect = string
     })))
-    labels            = optional(map(string))  # Additional labels for the node.
-    annotations       = optional(map(string)) # Additional annotations for the node.
+    labels      = optional(map(string)) # Additional labels for the node.
+    annotations = optional(map(string)) # Additional annotations for the node.
   })
   default     = {}
   description = "Default values for all nodes."
@@ -132,31 +132,31 @@ variable "node_defaults" {
 
 variable "nodes" {
   # The key is the name of the node. For a description of the possible values see node_defaults.
-  type        = map(object({
+  type = map(object({
     image_id          = optional(string)
     image_name        = optional(string)
     image_selector    = optional(string)
     most_recent_image = optional(bool)
 
-    server_type       = optional(string)
-    location          = optional(string)
-    ip                = optional(string)      # The private IP of the node.
-    hcloud_labels     = optional(map(string))
-    role_label        = optional(string)
-    keep_disk         = optional(string)
-    user_data         = optional(string)
-    ssh_user          = optional(string)
+    server_type   = optional(string)
+    location      = optional(string)
+    ip            = optional(string) # The private IP of the node.
+    hcloud_labels = optional(map(string))
+    role_label    = optional(string)
+    keep_disk     = optional(string)
+    user_data     = optional(string)
+    ssh_user      = optional(string)
 
-    kubelet_args      = optional(map(string))
-    ignore_errors     = optional(list(string))
-    role              = optional(string)
-    taints            = optional(list(object({
+    kubelet_args  = optional(map(string))
+    ignore_errors = optional(list(string))
+    role          = optional(string)
+    taints = optional(list(object({
       key    = string
       value  = string
       effect = string
     })))
-    labels            = optional(map(string))
-    annotations       = optional(map(string))
+    labels      = optional(map(string))
+    annotations = optional(map(string))
   }))
   description = "The nodes for the cluster."
 }

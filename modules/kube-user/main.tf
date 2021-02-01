@@ -2,7 +2,7 @@ locals {
   private_key_pem = coalesce(var.private_key_pem, tls_private_key.key[0].private_key_pem)
   context_name    = var.context_name != null ? var.context_name : "${var.username}@${var.cluster_name}"
   # See: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
-  kubeconfig      = {
+  kubeconfig = {
     apiVersion      = "v1"
     kind            = "Config"
     preferences     = {}
@@ -43,7 +43,7 @@ resource "tls_private_key" "key" {
 resource "tls_cert_request" "request" {
   key_algorithm   = var.algorithm
   private_key_pem = local.private_key_pem
-  
+
   subject {
     common_name  = var.username
     organization = var.groups
@@ -55,8 +55,8 @@ resource "tls_locally_signed_cert" "cert" {
   ca_key_algorithm   = var.kubernetes_ca.algorithm
   ca_cert_pem        = var.kubernetes_ca.cert
   ca_private_key_pem = var.kubernetes_ca.key
-  
+
   validity_period_hours = var.validity_period_hours
-  
+
   allowed_uses = ["digital_signature", "key_encipherment"]
 }

@@ -1,6 +1,6 @@
 locals {
-  ha_mode         = var.api_lb_type != null
-  endpoint_regex  = "^(?P<address>[^:\\/]+)(?::(?P<port>\\d+))?(?P<path>:\\/.*)?$"
+  ha_mode        = var.api_lb_type != null
+  endpoint_regex = "^(?P<address>[^:\\/]+)(?::(?P<port>\\d+))?(?P<path>:\\/.*)?$"
   endpoint_object = try(
     regex(local.endpoint_regex, var.api_endpoints[0]),
     {
@@ -25,9 +25,9 @@ locals {
   }, var.hcloud_labels)
   networking = defaults(var.networking, {
     # The node_cidr is arbitrarily chosen.
-    node_cidr    = "10.173.0.0/16"
+    node_cidr = "10.173.0.0/16"
     # The pod_cidr can be changed (even with flannel). However this is a commonly used value.
-    pod_cidr     = "10.244.0.0/16"
+    pod_cidr = "10.244.0.0/16"
   })
 }
 # ---------------------------------------------------------------------------------------------------------------------
@@ -53,15 +53,15 @@ module "api_lb" {
   source = "./modules/kube-api-lb"
   count  = local.ha_mode ? 1 : 0
 
-  name          = "${var.name}-api"
-  type          = var.api_lb_type
-  location      = var.location
+  name     = "${var.name}-api"
+  type     = var.api_lb_type
+  location = var.location
   hcloud_labels = merge(var.remove_default_hcloud_labels ? {} : {
     service = "api"
   }, local.hcloud_labels)
-  subnet_id     = hcloud_network_subnet.subnet.id
+  subnet_id = hcloud_network_subnet.subnet.id
 
-  port                   = var.port
+  port = var.port
   control_plane_selector = coalesce(var.control_plane_selector, join(",", compact([
     "kubernetes",
     "cluster=${var.name}",
@@ -91,7 +91,7 @@ module "pki" {
   rsa_bits  = 4096 # For the SA keypair
 
   kubelets = {
-    for name,config in var.nodes : name => {
+    for name, config in var.nodes : name => {
       ips = [
         module.cluster.node_info[name].cluster_ip,
         module.cluster.node_info[name].public_ipv4,
@@ -108,36 +108,36 @@ module "pki" {
 # ---------------------------------------------------------------------------------------------------------------------
 module "cluster" {
   source     = "./modules/kube-cluster"
-  depends_on = [ module.api_lb ]
+  depends_on = [module.api_lb]
 
   name            = var.name
   cluster_version = var.cluster_version
-  api_endpoints   = length(var.api_endpoints) > 0 ? var.api_endpoints : (
-                      local.ha_mode ? [module.api_lb[0].public_ipv4, module.api_lb[0].public_ipv6] : []
-                    )
+  api_endpoints = length(var.api_endpoints) > 0 ? var.api_endpoints : (
+    local.ha_mode ? [module.api_lb[0].public_ipv4, module.api_lb[0].public_ipv6] : []
+  )
 
-  networking      = local.networking
-  port            = var.port
+  networking = local.networking
+  port       = var.port
   private_network = {
     subnet_id = hcloud_network_subnet.subnet.id
   }
 
-  leader        = var.leader
-  nodes         = var.nodes
+  leader = var.leader
+  nodes  = var.nodes
   node_defaults = merge(var.node_defaults, {
     location      = var.location
     hcloud_labels = local.hcloud_labels
   })
-  role_label    = var.role_label
-  ssh_key       = {
+  role_label = var.role_label
+  ssh_key = {
     id          = hcloud_ssh_key.ssh_key.id
     private_key = tls_private_key.ssh_key.private_key_pem
   }
 
-  kubeconfig       = module.kubeadm_user.kubeconfig.rendered
-  kubelet_certs    = module.pki.kubelet_certs
-  sa_keypair       = module.pki.sa_keypair
-  ca_certificates  = module.pki.ca_certificates
+  kubeconfig      = module.kubeadm_user.kubeconfig.rendered
+  kubelet_certs   = module.pki.kubelet_certs
+  sa_keypair      = module.pki.sa_keypair
+  ca_certificates = module.pki.ca_certificates
 
   bootstrap_dependencies   = var.bootstrap_dependencies
   kube_proxy_configuration = var.kube_proxy_configuration
@@ -149,7 +149,7 @@ module "cluster" {
 # The kubeadm_user is used to join nodes to the cluster.
 module "kubeadm_user" {
   source = "./modules/kube-user"
-  
+
   cluster_name     = var.name
   cluster_endpoint = "https://${local.endpoint}"
   kubernetes_ca    = module.pki.ca_certificates["kubernetes"]
@@ -163,11 +163,11 @@ module "kubeadm_user" {
 # authorities manually you might want to create this user in a different way.
 module "admin_user" {
   source = "./modules/kube-user"
-  
+
   cluster_name     = var.name
   cluster_endpoint = "https://${local.endpoint}"
   kubernetes_ca    = module.pki.ca_certificates["kubernetes"]
-  
+
   username = "kubernetes-admin"
   groups   = "system:masters"
 }
@@ -178,10 +178,10 @@ module "admin_user" {
 # Hetzner CSI driver we can create a cluster that provides most of the functionality that Kubernetes user expect.
 # ---------------------------------------------------------------------------------------------------------------------
 module "addons" {
-  source     = "./modules/kube-addons"
+  source = "./modules/kube-addons"
   # This explicit dependency is useful when the cluster is upgraded. This way the cluster upgrade is performed before
   # addons are updated.
-  depends_on = [ module.cluster ]
+  depends_on = [module.cluster]
 
   cluster_id = module.cluster.id
   kubeconfig = module.admin_user.kubeconfig.rendered

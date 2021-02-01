@@ -34,7 +34,7 @@ output "ca_certificate" {
 }
 
 output "admin_kubeconfig" {
-	description = "A kubeconfig for the cluster administrator."
-	value		    = module.admin_user.kubeconfig
+  description = "A kubeconfig for the cluster administrator."
+  value       = module.admin_user.kubeconfig
   sensitive   = true
 }

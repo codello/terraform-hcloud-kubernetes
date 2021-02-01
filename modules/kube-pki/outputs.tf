@@ -1,11 +1,11 @@
 output "sa_keypair" {
   description = "The service account keypair."
-  value = tls_private_key.sa_keypair
+  value       = tls_private_key.sa_keypair
 }
 
 output "ca_certificates" {
   description = "The generated CA certificates."
-  value       = merge(
+  value = merge(
     {
       kubernetes = {
         algorithm = tls_self_signed_cert.cas["kubernetes"].key_algorithm
@@ -35,8 +35,8 @@ output "ca_certificates" {
 
 output "kubelet_certs" {
   description = "The certificates for the individual kubelets."
-  value       = {
-    for name,config in var.kubelets : name => {
+  value = {
+    for name, config in var.kubelets : name => {
       cert = tls_locally_signed_cert.kubelets[name].cert_pem
       key  = tls_private_key.kubelets[name].private_key_pem
     }

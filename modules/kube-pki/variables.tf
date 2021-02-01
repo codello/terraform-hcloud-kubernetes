@@ -21,18 +21,18 @@ variable "ecdsa_curve" {
 
 variable "ca_validity_period_hours" {
   type        = number
-  default     = 86400  # 10 years
+  default     = 86400 # 10 years
   description = "The number of hours the CA certificates are valid for."
 }
 
 variable "kubelet_validity_period_hours" {
   type        = number
-  default     = 8640  # 1 year
+  default     = 8640 # 1 year
   description = "The number of hours the kubelet certificates are valid for."
 }
 
 variable "kubelets" {
-  type        = map(object({
+  type = map(object({
     names = optional(list(string))
     ips   = optional(list(string))
   }))

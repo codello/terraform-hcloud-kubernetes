@@ -1,17 +1,17 @@
 locals {
-  api_endpoints = coalescelist(var.api_endpoints, [hcloud_server.servers[local.leader].ipv4_address, hcloud_server.servers[local.leader].ipv6_address])
-  kubelet_ca_enabled = var.ca_certificates.kubelet != null
-  network_enabled = var.private_network != null
+  api_endpoints       = coalescelist(var.api_endpoints, [hcloud_server.servers[local.leader].ipv4_address, hcloud_server.servers[local.leader].ipv6_address])
+  kubelet_ca_enabled  = var.ca_certificates.kubelet != null
+  network_enabled     = var.private_network != null
   kubeconfig_path     = "/tmp/kubeconfig.yml"
   kubeadm_config_path = "/tmp/kubeadm.yml"
 
   networking = defaults(var.networking, {
     # The pod_cidr can be changed (even with flannel). However this is a commonly used value.
-    pod_cidr     = "10.244.0.0/16"
+    pod_cidr = "10.244.0.0/16"
     # The service_cidr is the kubeadm default.
     service_cidr = "10.96.0.0/12"
     # The dns_domain is the kubeadm default.
-    dns_domain   = "cluster.local"
+    dns_domain = "cluster.local"
   })
 }
 
@@ -40,7 +40,7 @@ resource "null_resource" "cluster" {
 # To solve this issue we offer bootstrap_dependencies as a way to defer bootstrapping until some other resources are
 # created successfully.
 resource "null_resource" "bootstrap_dependencies" {
-  count    = length(var.bootstrap_dependencies)
+  count = length(var.bootstrap_dependencies)
   triggers = {
     value = var.bootstrap_dependencies[count.index]
   }
@@ -51,17 +51,17 @@ resource "null_resource" "bootstrap" {
     null_resource.bootstrap_dependencies,
     null_resource.certificates
   ]
-  
+
   triggers = {
     cluster = null_resource.cluster.id
   }
-  
+
   connection {
     user        = coalesce(local.nodes[local.leader].ssh_user, "kube")
     host        = hcloud_server.servers[local.leader].ipv4_address
     private_key = var.ssh_key.private_key
   }
-  
+
   provisioner "file" {
     content = join("\n---\n", [
       yamlencode(local.cluster_configuration),
@@ -71,7 +71,7 @@ resource "null_resource" "bootstrap" {
     ])
     destination = local.kubeadm_config_path
   }
-  
+
   provisioner "remote-exec" {
     inline = [
       "sudo kubeadm init --config=${local.kubeadm_config_path}",
@@ -82,7 +82,7 @@ resource "null_resource" "bootstrap" {
 
 
 resource "null_resource" "upgrade" {
-  depends_on = [ null_resource.bootstrap, null_resource.bootstrap_dependencies ]
+  depends_on = [null_resource.bootstrap, null_resource.bootstrap_dependencies]
 
   triggers = {
     cluster = null_resource.cluster.id
@@ -93,13 +93,13 @@ resource "null_resource" "upgrade" {
     kube_proxy_configuration = sha1(var.kube_proxy_configuration)
     cluster_configuration    = sha1(jsonencode(local.cluster_configuration))
   }
-  
+
   connection {
     user        = coalesce(local.nodes[local.leader].ssh_user, "kube")
     host        = hcloud_server.servers[local.leader].ipv4_address
     private_key = var.ssh_key.private_key
   }
-  
+
   provisioner "file" {
     content = join("\n---\n", [
       yamlencode(local.cluster_configuration),
@@ -108,7 +108,7 @@ resource "null_resource" "upgrade" {
     ])
     destination = local.kubeadm_config_path
   }
-  
+
   provisioner "remote-exec" {
     inline = [
       "version=$(sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf version --short | grep \"^Server Version: \" | cut -d' ' -f 3)",
@@ -120,25 +120,25 @@ resource "null_resource" "upgrade" {
 
 
 resource "null_resource" "join" {
-  depends_on = [ null_resource.upgrade, null_resource.bootstrap_dependencies ]
+  depends_on = [null_resource.upgrade, null_resource.bootstrap_dependencies]
   for_each   = local.nodes
 
   triggers = {
     # When the cluster ID changes it means that a new cluster has been created.
-    cluster             = null_resource.cluster.id
+    cluster = null_resource.cluster.id
     # When the server id changes we want to re-join the node
-    server_id           = hcloud_server.servers[each.key].id
+    server_id = hcloud_server.servers[each.key].id
     # When a node changes its role it has to be rejoined
-    role                = each.value.role
+    role = each.value.role
     # When the kubelet gets new certificates we have to reprovision the node.
     kubelet_certificate = sha1(var.kubelet_certs[each.key].cert)
     # When new certificates are deployed nodes are rejoined.
-    certificates        = each.value.role == "control-plane" ? null_resource.certificates[each.key].id : null
+    certificates = each.value.role == "control-plane" ? null_resource.certificates[each.key].id : null
 
     # These values are not actually necessary as triggers but this way we can use a destroy-provisioner.
-    user         = coalesce(each.value.ssh_user, "kube")
-    host         = hcloud_server.servers[each.key].ipv4_address
-    private_key  = var.ssh_key.private_key
+    user        = coalesce(each.value.ssh_user, "kube")
+    host        = hcloud_server.servers[each.key].ipv4_address
+    private_key = var.ssh_key.private_key
   }
 
   connection {
@@ -146,17 +146,17 @@ resource "null_resource" "join" {
     host        = self.triggers.host
     private_key = self.triggers.private_key
   }
-  
+
   provisioner "file" {
     content     = var.kubeconfig
     destination = local.kubeconfig_path
   }
-  
+
   provisioner "file" {
-    content = yamlencode(local.join_configuration[each.key])
+    content     = yamlencode(local.join_configuration[each.key])
     destination = local.kubeadm_config_path
   }
-  
+
   provisioner "remote-exec" {
     inline = concat(
       [
@@ -165,7 +165,7 @@ resource "null_resource" "join" {
       ],
       length(coalesce(each.value.annotations, {})) > 0 ? [
         "sudo kubectl --kubeconfig=/etc/kubernetes/kubelet.conf annotate node ${each.key} ${
-          join(" ", [for key,value in each.value.annotations: "${key}=${value}"])
+          join(" ", [for key, value in each.value.annotations : "${key}=${value}"])
         }"
       ] : []
     )
@@ -179,7 +179,7 @@ resource "null_resource" "join" {
     #
     # This will not work if we are re-joining the same worker node. Currently  the solution to this caveat is to delete
     # nodes before rejoining them.
-    when   = destroy
+    when = destroy
     inline = concat(
       lookup(self.triggers, "role", null) == "control-plane" ? [
         "sudo cp /etc/kubernetes/admin.conf /tmp/admin.conf"

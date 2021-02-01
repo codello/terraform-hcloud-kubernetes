@@ -1,7 +1,7 @@
 locals {
   # If the domain is abc.domain.tld, we get zone as domain.tld
   domain_components = split(".", var.cluster_domain)
-  zone = join(".", slice(local.domain_components, length(local.domain_components) - 2, length(local.domain_components)))
+  zone              = join(".", slice(local.domain_components, length(local.domain_components) - 2, length(local.domain_components)))
 }
 
 # Create the CloudFlare records and let them propagate. For Hetzner Cloud networks 3m is usually enough time.
@@ -40,12 +40,12 @@ data "hcloud_image" "image" {
 # The actual cluster.
 module "cluster" {
   source = "../../"
-  
+
   name            = "kubernetes"
   cluster_version = "v1.19.6"
   location        = "nbg1"
   hcloud_token    = var.hcloud_k8s_token
-  
+
   bootstrap_dependencies = [time_sleep.dns_propagation.id]
 
   api_lb_type   = "lb11"

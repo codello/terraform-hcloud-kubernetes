@@ -12,7 +12,7 @@ output "client_key" {
 output "kubeconfig" {
   description = "The generated kubeconfig data."
   sensitive   = true
-  value       = {
+  value = {
     cluster_name           = var.cluster_name
     cluster_endpoint       = var.cluster_endpoint
     cluster_ca_certificate = var.kubernetes_ca.cert

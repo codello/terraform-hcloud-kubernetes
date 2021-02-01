@@ -15,7 +15,7 @@ variable "cluster_endpoint" {
 }
 
 variable "kubernetes_ca" {
-  type        = object({
+  type = object({
     algorithm = string
     cert      = string
     key       = string

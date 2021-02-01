@@ -1,6 +1,6 @@
 locals {
   kubelet_ca_enabled = length(var.kubelets) > 0
-  cas = toset(concat(["kubernetes", "etcd-ca", "front-proxy-ca"], local.kubelet_ca_enabled ? ["kubelet-ca"] : []))
+  cas                = toset(concat(["kubernetes", "etcd-ca", "front-proxy-ca"], local.kubelet_ca_enabled ? ["kubelet-ca"] : []))
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -8,8 +8,8 @@ locals {
 # For some reason a ECDSA keypair does not work for service accounts.
 # ---------------------------------------------------------------------------------------------------------------------
 resource "tls_private_key" "sa_keypair" {
-  algorithm   = "RSA"
-  rsa_bits    = 4096
+  algorithm = "RSA"
+  rsa_bits  = 4096
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ resource "tls_self_signed_cert" "cas" {
   subject {
     common_name = each.key
   }
-  
+
   validity_period_hours = var.ca_validity_period_hours
   allowed_uses          = ["digital_signature", "key_encipherment", "cert_signing"]
   is_ca_certificate     = true
@@ -56,7 +56,7 @@ resource "tls_cert_request" "kubelets" {
 
   key_algorithm   = tls_private_key.kubelets[each.key].algorithm
   private_key_pem = tls_private_key.kubelets[each.key].private_key_pem
-  
+
   ip_addresses = each.value.ips
   dns_names    = concat([each.key], coalesce(each.value.names, []))
 
@@ -72,8 +72,8 @@ resource "tls_locally_signed_cert" "kubelets" {
   ca_key_algorithm   = tls_self_signed_cert.cas["kubelet-ca"].key_algorithm
   ca_cert_pem        = tls_self_signed_cert.cas["kubelet-ca"].cert_pem
   ca_private_key_pem = tls_private_key.cas["kubelet-ca"].private_key_pem
-  
+
   validity_period_hours = var.kubelet_validity_period_hours
-  
+
   allowed_uses = ["key_encipherment", "digital_signature", "server_auth"]
 }
