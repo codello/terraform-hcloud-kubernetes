@@ -26,7 +26,9 @@ variable "credentials" {
     client_key  = string
   })
   description = "Connection information for the kubectl command."
-  # TODO: Mark this as sensitive. Currently this causes an error.
+  # Obviously these are sensitive values. However marking this variable as sensitive hides the output of the kubectl
+  # command which is a little annoying. As the kubectl command does not usually leak this value we omit the sensitive
+  # marking for now.
   # sensitive   = true
 }
 
@@ -49,7 +51,10 @@ variable "cloud_controller_manager" {
     pod_cidr = ""
   }
   description = "Settings for the cloud controller manager."
-  sensitive   = true
+  # Obviously these are sensitive values. However marking this variable as sensitive hides the output of the kubectl
+  # command which is a little annoying. As the kubectl command does not usually leak this value we omit the sensitive
+  # marking for now.
+  # sensitive   = true
 }
 
 # The Hetzner CSI Driver
@@ -67,7 +72,10 @@ variable "csi_driver" {
     token   = ""
   }
   description = "Settings for the hcloud csi driver."
-  sensitive   = true
+  # Obviously these are sensitive values. However marking this variable as sensitive hides the output of the kubectl
+  # command which is a little annoying. As the kubectl command does not usually leak this value we omit the sensitive
+  # marking for now.
+  # sensitive   = true
 }
 
 # SSH Keys stored inside the cluster.
@@ -83,6 +91,9 @@ variable "ssh_keys" {
     private_key = ""
   }
   description = "Settings for in-cluster SSH-Keys."
+  # Obviously these are sensitive values. However marking this variable as sensitive hides the output of the kubectl
+  # command which is a little annoying. As the kubectl command does not usually leak this value we omit the sensitive
+  # marking for now.
   # sensitive   = true
 }
 

@@ -22,7 +22,8 @@ locals {
     overlay       = "none"
     force_overlay = false
   }))
-  flannel_manifest = templatefile("${path.module}/manifests/flannel.yaml", var.flannel)
+  calico_manifest_docs = compact(split("---", local.calico_manifest))
+  flannel_manifest     = templatefile("${path.module}/manifests/flannel.yaml", var.flannel)
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -55,10 +56,8 @@ resource "null_resource" "calico" {
   }
 
   provisioner "local-exec" {
-    command = "${local.kubectl} apply -f -"
-    environment = merge(local.env, {
-      STDIN = local.calico_manifest
-    })
+    command     = "${local.kubectl} apply -f -"
+    environment = merge(local.env, zipmap([for i in range(length(local.calico_manifest_docs)) : "STDIN${i}"], local.calico_manifest_docs))
   }
 
   # We want to wait for the calico pods to start up before deploying the CCM.
