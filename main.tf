@@ -184,6 +184,7 @@ module "addons" {
   depends_on = [module.cluster]
 
   cluster_id       = module.cluster.id
+  kubectl_cmd      = var.kubectl_cmd
   cluster_endpoint = module.admin_user.cluster_endpoint
   credentials = {
     ca_cert     = module.admin_user.kubernetes_ca.cert
