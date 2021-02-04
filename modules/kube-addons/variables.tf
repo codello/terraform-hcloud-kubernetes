@@ -83,7 +83,7 @@ variable "ssh_keys" {
     private_key = ""
   }
   description = "Settings for in-cluster SSH-Keys."
-  sensitive   = true
+  # sensitive   = true
 }
 
 # The Calico CNI plugin.

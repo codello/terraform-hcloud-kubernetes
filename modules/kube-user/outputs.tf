@@ -5,7 +5,7 @@ output "client_cert" {
 
 output "client_key" {
   value       = local.private_key_pem
-  sensitive   = true
+  # sensitive   = true
   description = "The private key generated for the user."
 }
 
