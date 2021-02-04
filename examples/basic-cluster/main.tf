@@ -1,10 +1,3 @@
-# TODO: Remove when hetznercloud/terraform-provider-hcloud#306 is solved.
-# https://github.com/hetznercloud/terraform-provider-hcloud/issues/306
-data "hcloud_image" "image" {
-  with_selector = "kubernetes"
-  with_status   = ["available"]
-}
-
 module "cluster" {
   source = "../../"
 
@@ -14,8 +7,6 @@ module "cluster" {
   hcloud_token    = var.hcloud_k8s_token
 
   node_defaults = {
-    # FIXME: Temporary fix for hetznercloud/terraform-provider-hcloud#306
-    image_id     = data.hcloud_image.image.id
     server_type  = "cpx11"
     kubelet_args = { cgroup-driver = "systemd" }
   }

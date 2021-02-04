@@ -30,13 +30,6 @@ resource "time_sleep" "dns_propagation" {
   create_duration = "3m"
 }
 
-# TODO: Remove when hetznercloud/terraform-provider-hcloud#306 is solved.
-# https://github.com/hetznercloud/terraform-provider-hcloud/issues/306
-data "hcloud_image" "image" {
-  with_selector = "kubernetes"
-  with_status   = ["available"]
-}
-
 # The actual cluster.
 module "cluster" {
   source = "../../"
@@ -52,8 +45,6 @@ module "cluster" {
   api_endpoints = [cloudflare_record.kubernetes_api.hostname]
 
   node_defaults = {
-    # FIXME: Temporary fix for hetznercloud/terraform-provider-hcloud#306
-    image_id     = data.hcloud_image.image.id
     server_type  = "cpx11"
     kubelet_args = { cgroup-driver = "systemd" }
   }
