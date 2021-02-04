@@ -18,6 +18,8 @@ if [ "$KUBECTL" = "DOWNLOAD" ]; then
     chmod +x "$KUBECTL"
 fi
 
+echo "KUBECTL is $KUBECTL"
+
 echo "$STDIN" | $KUBECTL "--server=$ENDPOINT" \
                          "--certificate-authority=$creds/ca.crt" \
                          "--client-certificate=$creds/client.crt" \
