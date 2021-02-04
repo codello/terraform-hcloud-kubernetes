@@ -81,16 +81,6 @@ variable "networking" {
   description = "Settings for the cluster network."
 }
 
-variable "cni_plugin" {
-  type        = string
-  default     = "calico"
-  description = "The CNI plugin to install."
-
-  validation {
-    condition     = contains(["calico", "flannel", "none"], var.cni_plugin)
-    error_message = "The cni_plugin must be either calico, flannel or none."
-  }
-}
 # ---------------------------------------------------------------------------------------------------------------------
 # NODES
 # The node configuration is mainly copied from ./modules/kube-cluster/variables.tf
@@ -231,9 +221,26 @@ variable "scheduler" {
 # ---------------------------------------------------------------------------------------------------------------------
 # ADDON CONFIGURATION
 # ---------------------------------------------------------------------------------------------------------------------
+variable "kubectl_cmd" {
+  type        = string
+  default     = "kubectl"
+  description = "The kubectl command to install addons. Override if kubectl is not in the PATH."
+}
+
 variable "hcloud_token" {
   type        = string
   default     = null
   description = "The token used by the Hetzner CCM and CSI driver."
   sensitive   = true
+}
+
+variable "cni_plugin" {
+  type        = string
+  default     = "calico"
+  description = "The CNI plugin to install."
+
+  validation {
+    condition     = contains(["calico", "flannel", "none"], var.cni_plugin)
+    error_message = "The cni_plugin must be either calico, flannel or none."
+  }
 }

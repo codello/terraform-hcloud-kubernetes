@@ -1,5 +1,12 @@
 locals {
   kubectl = "${path.module}/kubectl.sh"
+  env = {
+    KUBECTL     = var.kubectl_cmd
+    ENDPOINT    = var.cluster_endpoint
+    CA_CERT     = var.credentials.ca_cert
+    CLIENT_CERT = var.credentials.client_cert
+    CLIENT_KEY  = var.credentials.client_key
+  }
 
   ccm_manifest = templatefile("${path.module}/manifests/hcloud-ccm.yaml", var.cloud_controller_manager)
   csi_manifest = templatefile("${path.module}/manifests/hcloud-csi-driver.yaml", defaults(var.csi_driver, {
@@ -30,10 +37,9 @@ resource "null_resource" "ssh_keys" {
 
   provisioner "local-exec" {
     command = "${local.kubectl} apply -f -"
-    environment = {
-      STDIN      = local.ssh_keys_manifest
-      KUBECONFIG = var.kubeconfig
-    }
+    environment = merge(local.env, {
+      STDIN = local.ssh_keys_manifest
+    })
   }
 }
 
@@ -50,20 +56,17 @@ resource "null_resource" "calico" {
 
   provisioner "local-exec" {
     command = "${local.kubectl} apply -f -"
-    environment = {
-      STDIN      = local.calico_manifest
-      KUBECONFIG = var.kubeconfig
-    }
+    environment = merge(local.env, {
+      STDIN = local.calico_manifest
+    })
   }
 
   # We want to wait for the calico pods to start up before deploying the CCM.
   # The reason is that otherwise some pods (such as CoreDNS) might get wrong IP
   # addresses because Calico IPAM has not started up yet.
   provisioner "local-exec" {
-    command = "${local.kubectl} wait -n kube-system --for=condition=READY pods --selector=k8s-app=calico-node"
-    environment = {
-      KUBECONFIG = var.kubeconfig
-    }
+    command     = "${local.kubectl} wait -n kube-system --for=condition=READY pods --selector=k8s-app=calico-node"
+    environment = local.env
   }
 
   # TODO: Destroy-time Provisioner
@@ -82,20 +85,17 @@ resource "null_resource" "flannel" {
 
   provisioner "local-exec" {
     command = "${local.kubectl} apply -f -"
-    environment = {
-      STDIN      = local.flannel_manifest
-      KUBECONFIG = var.kubeconfig
-    }
+    environment = merge(local.env, {
+      STDIN = local.flannel_manifest
+    })
   }
 
   # We want to wait for the calico pods to start up before deploying the CCM.
   # The reason is that otherwise some pods (such as CoreDNS) might get wrong IP
   # addresses because Calico IPAM has not started up yet.
   provisioner "local-exec" {
-    command = "${local.kubectl} wait -n kube-system --for=condition=READY pods --selector=app=flannel"
-    environment = {
-      KUBECONFIG = var.kubeconfig
-    }
+    command     = "${local.kubectl} wait -n kube-system --for=condition=READY pods --selector=app=flannel"
+    environment = local.env
   }
 
   # TODO: Destroy-time Provisioner
@@ -115,10 +115,9 @@ resource "null_resource" "ccm" {
 
   provisioner "local-exec" {
     command = "${local.kubectl} apply -f -"
-    environment = {
-      STDIN      = local.ccm_manifest
-      KUBECONFIG = var.kubeconfig
-    }
+    environment = merge(local.env, {
+      STDIN = local.ccm_manifest
+    })
   }
 
   # TODO: Destroy-time Provisioner
@@ -138,10 +137,9 @@ resource "null_resource" "csi" {
 
   provisioner "local-exec" {
     command = "${local.kubectl} apply -f -"
-    environment = {
-      STDIN      = local.csi_manifest
-      KUBECONFIG = var.kubeconfig
-    }
+    environment = merge(local.env, {
+      STDIN = local.csi_manifest
+    })
   }
 
   # TODO: Destroy-time Provisioner

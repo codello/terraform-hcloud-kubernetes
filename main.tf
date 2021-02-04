@@ -183,8 +183,13 @@ module "addons" {
   # addons are updated.
   depends_on = [module.cluster]
 
-  cluster_id = module.cluster.id
-  kubeconfig = module.admin_user.kubeconfig.rendered
+  cluster_id       = module.cluster.id
+  cluster_endpoint = module.admin_user.cluster_endpoint
+  credentials = {
+    ca_cert     = module.admin_user.kubernetes_ca.cert
+    client_cert = module.admin_user.client_cert
+    client_key  = module.admin_user.client_key
+  }
 
   cloud_controller_manager = {
     enabled  = var.hcloud_token != null

@@ -1,3 +1,9 @@
+variable "kubectl_cmd" {
+  type        = string
+  default     = "kubectl"
+  description = "The kubectl command. If the kubectl binary is not in the PATH you might need to modify this value"
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # CLUSTER SETTINGS
 # Configure the cluster that these addons should be applied to
@@ -8,9 +14,18 @@ variable "cluster_id" {
   description = "The ID of the cluster. If this changes addons are re-applied."
 }
 
-variable "kubeconfig" {
+variable "cluster_endpoint" {
   type        = string
-  description = "A rendered kubeconfig file used to install the addons into the cluster."
+  description = "The address of the cluster in which addons are to be installed"
+}
+
+variable "credentials" {
+  type = object({
+    ca_cert     = string
+    client_cert = string
+    client_key  = string
+  })
+  description = "Connection information for the kubectl command."
   # TODO: Mark this as sensitive. Currently this causes an error.
   # sensitive   = true
 }

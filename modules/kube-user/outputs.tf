@@ -1,4 +1,4 @@
-output "client_certificate" {
+output "client_cert" {
   value       = tls_locally_signed_cert.cert.cert_pem
   description = "The certificate generated for the user."
 }
@@ -7,6 +7,16 @@ output "client_key" {
   value       = local.private_key_pem
   sensitive   = true
   description = "The private key generated for the user."
+}
+
+output "cluster_endpoint" {
+  value       = var.cluster_endpoint
+  description = "The cluster endpoint passed as input."
+}
+
+output "kubernetes_ca" {
+  value       = var.kubernetes_ca
+  description = "The kubernetes_ca passed as input"
 }
 
 output "kubeconfig" {

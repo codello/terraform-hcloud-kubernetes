@@ -4,8 +4,15 @@
 # passed via the environment before running kubectl thereby allowing credentials in the environment. This script can
 # be called just as kubectl itself would.
 
-kubeconfig=$(mktemp)
-chmod 600 "$kubeconfig"
-echo "$KUBECONFIG" > "$kubeconfig"
-echo "$STDIN" | kubectl --kubeconfig "$kubeconfig" "$@"
-rm "$kubeconfig"
+creds=$(mktemp -d)
+echo "$CA_CERT" > "$creds/ca.crt"
+echo "$CLIENT_CERT" > "$creds/client.crt"
+echo "$CLIENT_KEY" > "$creds/client.key"
+chmod 600 "$credentials/*"
+
+echo "$STDIN" | $KUBECTL "--server=$ENDPOINT" \
+                         "--certificate-authority=$creds/ca.crt" \
+                         "--client-certificate=$creds/client.crt" \
+                         "--client-key=$creds/client.key" \
+                         "$@"
+rm -rf "$creds"
