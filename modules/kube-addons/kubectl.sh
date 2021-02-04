@@ -8,7 +8,7 @@ creds=$(mktemp -d)
 echo "$CA_CERT" > "$creds/ca.crt"
 echo "$CLIENT_CERT" > "$creds/client.crt"
 echo "$CLIENT_KEY" > "$creds/client.key"
-chmod 600 "$credentials/*"
+chmod 600 "$creds/*"
 
 echo "$STDIN" | $KUBECTL "--server=$ENDPOINT" \
                          "--certificate-authority=$creds/ca.crt" \
