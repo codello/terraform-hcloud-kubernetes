@@ -1,7 +1,7 @@
 variable "kubectl_cmd" {
   type        = string
   default     = "kubectl"
-  description = "The kubectl command. If the kubectl binary is not in the PATH you might need to modify this value"
+  description = "The kubectl command. If the kubectl binary is not in the PATH you might need to modify this value. Use the special value DOWNLOAD to automatically download the binary."
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

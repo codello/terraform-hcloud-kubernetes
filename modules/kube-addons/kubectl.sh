@@ -10,6 +10,14 @@ echo "$CLIENT_CERT" > "$creds/client.crt"
 echo "$CLIENT_KEY" > "$creds/client.key"
 chmod 600 "$creds/*"
 
+if [ "$KUBECTL" = "DOWNLOAD" ]; then
+    KUBECTL=~/.local/bin/kubectl
+    mkdir -p $(dirname "$KUBECTL")
+    version=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+    curl -L -o "$KUBECTL" https://storage.googleapis.com/kubernetes-release/release/$version/bin/linux/amd64/kubectl
+    chmod +x "$KUBECTL"
+fi
+
 echo "$STDIN" | $KUBECTL "--server=$ENDPOINT" \
                          "--certificate-authority=$creds/ca.crt" \
                          "--client-certificate=$creds/client.crt" \
