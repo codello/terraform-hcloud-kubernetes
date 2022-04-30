@@ -64,7 +64,7 @@ resource "null_resource" "calico" {
   # The reason is that otherwise some pods (such as CoreDNS) might get wrong IP
   # addresses because Calico IPAM has not started up yet.
   provisioner "local-exec" {
-    command     = "${local.kubectl} wait -n kube-system --for=condition=READY pods --selector=k8s-app=calico-node"
+    command     = "${local.kubectl} wait -n kube-system --for=condition=READY pods --timeout=3m --selector=k8s-app=calico-node"
     environment = local.env
   }
 
@@ -93,7 +93,7 @@ resource "null_resource" "flannel" {
   # The reason is that otherwise some pods (such as CoreDNS) might get wrong IP
   # addresses because Calico IPAM has not started up yet.
   provisioner "local-exec" {
-    command     = "${local.kubectl} wait -n kube-system --for=condition=READY pods --selector=app=flannel"
+    command     = "${local.kubectl} wait -n kube-system --for=condition=READY pods --timeout=3m --selector=app=flannel"
     environment = local.env
   }
 
